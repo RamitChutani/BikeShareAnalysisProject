@@ -580,6 +580,52 @@ real_trips_v2 %>%
 overnight_trips <- real_trips_v2 %>% 
   filter(date_started != date_ended & trip_duration_category != "Less than 1 hour")
 
+
+# plotting start/end times again with frequency plot
+real_trips_v2 %>%
+  mutate(
+    start_time_minute = hour(started_at) * 60 + minute(started_at) + second(started_at) / 60,
+    end_time_minute = hour(ended_at) * 60 + minute(ended_at) + second(ended_at) / 60
+  ) %>%
+  ggplot() + 
+  geom_freqpoly(aes(x = start_time_minute, color = "Start Time"), binwidth = 1, alpha = 0.6, size= 1) +
+  geom_freqpoly(aes(x = end_time_minute, color = "End Time"), binwidth = 1, alpha = 0.3, size = 0.5) +
+  scale_x_continuous(name = "Time of Day", breaks = seq(0, 1440, by = 120), labels = function(x) format(as.POSIXct(x * 60, origin = "1970-01-01", tz = "UTC"), "%H:%M")) +
+  scale_color_manual(values = c("Start Time" = "blue", "End Time" = "red")) +  # Specify colors for the legend
+  labs(title = "Number of Trips Starting and Ending by Time of Day", color = "Time Type", y = "Number of Trips") +  # Add title to the legend
+  theme_light()
+
+# same as above for members
+real_trips_v2 %>%
+  filter(member_casual == "member") %>% 
+  mutate(
+    start_time_minute = hour(started_at) * 60 + minute(started_at) + second(started_at) / 60,
+    end_time_minute = hour(ended_at) * 60 + minute(ended_at) + second(ended_at) / 60
+  ) %>%
+  ggplot() + 
+  geom_freqpoly(aes(x = start_time_minute, color = "Start Time"), binwidth = 1, alpha = 0.6, size= 1) +
+  geom_freqpoly(aes(x = end_time_minute, color = "End Time"), binwidth = 1, alpha = 0.3, size = 0.5) +
+  scale_x_continuous(name = "Time of Day", breaks = seq(0, 1440, by = 120), labels = function(x) format(as.POSIXct(x * 60, origin = "1970-01-01", tz = "UTC"), "%H:%M")) +
+  scale_color_manual(values = c("Start Time" = "blue", "End Time" = "red")) + 
+  labs(title = "Number of Member Trips by Start and End Times", color = " ", y = "Number of Trips") +
+  theme_light()
+
+
+# same as above for casuals
+real_trips_v2 %>%
+  filter(member_casual == "casual") %>% 
+  mutate(
+    start_time_minute = hour(started_at) * 60 + minute(started_at) + second(started_at) / 60,
+    end_time_minute = hour(ended_at) * 60 + minute(ended_at) + second(ended_at) / 60
+  ) %>%
+  ggplot() + 
+  geom_freqpoly(aes(x = start_time_minute, color = "Start Time"), binwidth = 1, alpha = 0.6, size= 1) +
+  geom_freqpoly(aes(x = end_time_minute, color = "End Time"), binwidth = 1, alpha = 0.3, size = 0.5) +
+  scale_x_continuous(name = "Time of Day", breaks = seq(0, 1440, by = 120), labels = function(x) format(as.POSIXct(x * 60, origin = "1970-01-01", tz = "UTC"), "%H:%M")) +
+  scale_color_manual(values = c("Start Time" = "blue", "End Time" = "red")) + 
+  labs(title = "Number of Casual Trips by Start and End Times", color = " ", y = "Number of Trips") +
+  theme_light()
+
 ## TRIP DURATION CATEGORY
 ## ======================
 
@@ -660,7 +706,26 @@ round_trips_by_status <- round_trips %>%
   group_by(member_casual) %>%
   summarise(round_trips = n())
 
+# making routes by user type table
+routes_by_trip_length <-real_trips_v2 %>%
+  group_by(member_casual, start_station_name, end_station_name) %>%
+  summarise(
+    route = paste(start_station_name, "to", end_station_name)[1],
+    num_trips = n(),
+    duration = mean(trip_length),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(num_trips))
 
+# top 10 route for casual
+casual_routes <- routes_by_trip_length %>%
+  filter(member_casual == "casual") %>%
+  slice_head(n = 10)
+
+# top 10 route for member
+member_routes <- routes_by_trip_length %>%
+  filter(member_casual == "member") %>%
+  slice_head(n = 10)
 
 
 ## MEMBER STATUS
