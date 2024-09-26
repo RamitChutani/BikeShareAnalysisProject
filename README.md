@@ -1,4 +1,4 @@
-# Bike Share Analysis Project - Google Data Analytics Capstone Project
+# Google Data Analytics Certificate Capstone - Bike Share Analysis
 
 ## Portfolio Project Introduction
 
